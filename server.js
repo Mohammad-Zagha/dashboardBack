@@ -8,6 +8,9 @@ const Subs=require('./modules/clinteModule')
 const dayjs = require('dayjs')
 const cookieParser = require('cookie-parser')
 const cors=require('cors') 
+const https = require('https')
+const path = require('path')
+const fs = require('fs')
 require('dotenv').config();
 
 schedule.scheduleJob('* * * * *',async()=>{
@@ -68,22 +71,29 @@ schedule.scheduleJob('* * * * *',async()=>{
     }
 
 })
-
-app.use(express.json())
-app.use(cookieParser())
-app.use('/home',websiteRoutes)
-app.use('/log',userRoutes)
 app.use(cors({
-    origin:['http://http://localhost:3000'],
+    origin:true,
     credentials:true,
     
 }))
+app.use(express.json())
+app.use(cookieParser())
+
+app.use('/home',websiteRoutes)
+app.use('/log',userRoutes)
+
 mongoose.connect(process.env.MONGO_URI)
 .then(()=>{
     console.log('Connected')
-    app.listen(process.env.PORT || 5000,()=>{
-        console.log("listening",)
-    })
+    const sslServer = https.createServer(
+        {
+          key: fs.readFileSync(path.join(__dirname, 'cert', 'key.pem')),
+          cert: fs.readFileSync(path.join(__dirname, 'cert', 'cert.pem')),
+        },
+        app
+      )
+      
+      sslServer.listen(process.env.PORT || 5000, () => console.log('Secure server 🚀🔑 '))
 })
 .catch((err)=>{
     console.log(err)

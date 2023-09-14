@@ -3,17 +3,19 @@ const router=express.Router();
 const Subs =require('../modules/clinteModule');
 const dayjs = require('dayjs')
 const requireAuth=require('../middlewear/requierAuth')
+
 router.use(requireAuth);
+
 router.post('/add',async(req,res)=>{
     const clinte = req.body;
     try
     {
-        const emailFromCookie = req.cookies.email;
+       
 
        
-        clinte.owner = emailFromCookie;
+        clinte.owner = req.user.email;
         await Subs.create(clinte)
-         const resp= await Subs.findOne({name:`${clinte.name}`, owner:req.cookies.email})
+         const resp= await Subs.findOne({name:`${clinte.name}`, owner:req.user.email})
         // console.log(res)
         res.status(200).json(resp)
     }
@@ -24,8 +26,7 @@ router.post('/add',async(req,res)=>{
    
 })
 router.get('/clients',async(req,res)=>{
-    const Clients=await Subs.find({owner:req.cookies.email})
-    
+    const Clients=await Subs.find({owner:req.user.email})
     res.status(200).json(Clients)
     return;
 })
@@ -35,7 +36,7 @@ router.patch('/updateStatus',async(req,res)=>{
     try{
         if(status === "Canceld")
         {
-            const resp =  await Subs.updateOne({name:name , owner:req.cookies.email},{$set:{status:status,daysLeft:"0"}})
+            const resp =  await Subs.updateOne({name:name , owner:req.user.email},{$set:{status:status,daysLeft:"0"}})
             if(resp.modifiedCount=== 1)
             {
                     const updatedDockument  = await Subs.findOne({name :`${name}`})
@@ -61,7 +62,7 @@ router.patch('/updateStatus',async(req,res)=>{
 })
 router.patch('/updateClient',async(req,res)=>{
     const client=req.body;
-    console.log(client)
+    
     res.status(200).json(client)
 })
 router.patch('/addSub',async(req,res)=>{
@@ -73,7 +74,7 @@ router.patch('/addSub',async(req,res)=>{
     const dateObj = {startDate:object.startDate,endDate:object.endDate,price:object.price}
     const name = object.name
     const dbRes= await Subs.updateOne(
-        { name: `${name}` , owner:req.cookies.email },
+        { name: `${name}` , owner:req.user.email },
         {
           $push: {
             dateArray: {
@@ -103,10 +104,10 @@ router.patch('/unFreezSub',async(req,res)=>{
     try{
         
         
-        const resp =  await Subs.updateOne({name:name, owner:req.cookies.email},{$set:{frozenDate:0 , status:"Active" }})
+        const resp =  await Subs.updateOne({name:name, owner:req.user.email},{$set:{frozenDate:0 , status:"Active" }})
         if(resp.modifiedCount=== 1)
         {
-            const updatedDockument  = await Subs.findOne({name :`${name}`, owner:req.cookies.email})
+            const updatedDockument  = await Subs.findOne({name :`${name}`, owner:req.user.email})
             res.status(200).json(updatedDockument)
         }
        
@@ -125,10 +126,10 @@ router.patch('/freezSub',async(req,res)=>{
     try{
         
         
-        const resp =  await Subs.updateOne({name:name, owner:req.cookies.email},{$set:{frozenDate:frozenDays , status:"Frozen"}})
+        const resp =  await Subs.updateOne({name:name, owner:req.user.email},{$set:{frozenDate:frozenDays , status:"Frozen"}})
         if(resp.modifiedCount=== 1)
         {
-            const updatedDockument  = await Subs.findOne({name :`${name}`, owner:req.cookies.email})
+            const updatedDockument  = await Subs.findOne({name :`${name}`, owner:req.user.email})
             res.status(200).json(updatedDockument)
         }
        
@@ -163,7 +164,7 @@ router.patch('/updateClientByName', async (req, res) => {
 
         // Find and update the existing object with the same name
         const updatedObject = await Subs.findOneAndUpdate(
-            { name: nameToUpdate, owner:req.cookies.email },
+            { name: nameToUpdate, owner:req.user.email },
             receivedObject, // Replace with the received object
             { new: true } // To return the updated object
         );

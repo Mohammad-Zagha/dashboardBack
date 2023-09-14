@@ -38,7 +38,7 @@ const userSchema= new Schema({
     
     if(exiset)
     {
-        throw Error('الايميل مستخدم  ')
+        throw Error('الايميل مستخدم ')
     }
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password,salt);
