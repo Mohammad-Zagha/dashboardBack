@@ -13,7 +13,7 @@ const path = require('path')
 const fs = require('fs')
 require('dotenv').config();
 
-schedule.scheduleJob('* * * * *',async()=>{
+schedule.scheduleJob('0 0 * * *',async()=>{
     var clients = await Subs.find({})
     if(clients.length === 0)
     {
